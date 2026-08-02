@@ -1,0 +1,21 @@
+# Copy this file to terraform.tfvars and fill in your real values.
+# terraform.tfvars is git-ignored and must NEVER be committed,
+# since it contains credentials.
+
+# vmrest REST API credentials (set with `vmrest.exe --config`)
+vmws_user     = "labuser"
+vmws_password = "CHANGE_ME"
+vmws_url      = "http://127.0.0.1:8697/api"
+
+# VM hardware sizing
+vm_memory     = 2048
+vm_processors = 2
+
+# SSH credentials used by remote-exec provisioners
+ssh_user     = "labuser"
+ssh_password = "CHANGE_ME"
+
+# IP addresses of the lab VMs (obtained after first apply + power on,
+# via: curl -u <user>:<password> http://127.0.0.1:8697/api/vms/<vm_id>/ip)
+kali_ip   = "192.168.233.133"
+victim_ip = "192.168.233.134"

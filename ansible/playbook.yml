@@ -1,0 +1,65 @@
+---
+# Configures the two lab VMs created by Terraform.
+# Run after `terraform apply` has created the inventory.ini file:
+#
+#   ansible-playbook playbook.yml
+#
+# Requires `sshpass` to be installed on the control machine, since the
+# inventory uses password-based SSH authentication (ansible_ssh_pass).
+
+- name: Configure attacker VM (kali-like-vm)
+  hosts: attacker
+  become: true
+  tasks:
+    - name: Update apt cache
+      apt:
+        update_cache: true
+
+    - name: Install reconnaissance tools
+      apt:
+        name:
+          - nmap
+          - masscan
+        state: present
+
+- name: Configure victim VM (victim-vm)
+  hosts: victim
+  become: true
+  vars:
+    victim_service_dir: /home/labuser/victim_service
+  tasks:
+    - name: Ensure service directory exists
+      file:
+        path: "{{ victim_service_dir }}"
+        state: directory
+        owner: labuser
+        group: labuser
+        mode: "0755"
+
+    - name: Install a systemd unit for the vulnerable HTTP service
+      copy:
+        dest: /etc/systemd/system/victim-http.service
+        content: |
+          [Unit]
+          Description=Vulnerable Python HTTP service (lab)
+          After=network.target
+
+          [Service]
+          User=labuser
+          WorkingDirectory={{ victim_service_dir }}
+          ExecStart=/usr/bin/python3 -m http.server 8080
+          Restart=on-failure
+
+          [Install]
+          WantedBy=multi-user.target
+        mode: "0644"
+
+    - name: Reload systemd
+      systemd:
+        daemon_reload: true
+
+    - name: Enable and start the vulnerable HTTP service
+      systemd:
+        name: victim-http.service
+        enabled: true
+        state: started

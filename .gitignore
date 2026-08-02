@@ -22,3 +22,5 @@ Desktop.ini
 
 # Repository documents not meant for version control
 *.pdf
+
+ansible/inventory.ini
